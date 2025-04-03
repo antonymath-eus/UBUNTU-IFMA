@@ -1,1 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubuntu - Ouvidoria IFMA Santa Inês</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
 
+        body {
+            background: linear-gradient(45deg, #0a0a23, #1a1a4d);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffcc; }
+            to { text-shadow: 0 0 20px #00ffcc, 0 0 30px #00ffcc; }
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #00ffcc;
+        }
+
+        .neon-line {
+            height: 2px;
+            background: #00ffcc;
+            box-shadow: 0 0 10px #00ffcc;
+            margin: 20px 0;
+        }
+
+        .form-container, .admin-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ffcc;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background: #00ffcc;
+            color: #0a0a23;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .message-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <header>
+            <h1>Ubuntu - Ouvidoria</h1>
+            <p>Grêmio Estudantil IFMA Santa Inês</p>
+            <button id="admin-btn">Área do Administrador</button>
+        </header>
+
+        <div class="neon-line"></div>
+
+        <!-- Formulário de Ouvidoria -->
+        <div class="form-container" id="ouvidoria-section">
+            <form id="ouvidoria-form">
+                <div class="form-group">
+                    <label for="nome">Nome (opcional)</label>
+                    <input type="text" id="nome" placeholder="Pode ser anônimo">
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo de Mensagem</label>
+                    <select id="tipo">
+                        <option value="sugestao">Sugestão</option>
+                        <option value="reclamacao">Reclamação</option>
+                        <option value="elogio">Elogio</option>
+                        <option value="denuncia">Denúncia</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="mensagem">Sua Mensagem</label>
+                    <textarea id="mensagem" placeholder="Digite sua mensagem aqui..." required></textarea>
+                </div>
+
+                <button type="submit">Enviar Mensagem</button>
+            </form>
+        </div>
+
+        <!-- Área de Login do Admin -->
+        <div class="form-container hidden" id="admin-login">
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-user">Usuário</label>
+                    <input type="text" id="admin-user" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-pass">Senha</label>
+                    <input type="password" id="admin-pass" required>
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+
+        <!-- Área de Administração -->
+        <div class="admin-container hidden" id="admin-section">
+            <h2>Mensagens Recebidas</h2>
+            <div class="message-list" id="message-list"></div>
+            <button id="logout-btn">Sair</button>
+        </div>
+    </div>
+
+    <script>
+        // Efeito de partículas
+        const particlesContainer = document.getElementById('particles');
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.width = '2px';
+            particle.style.height = '2px';
+            particle.style.background = '#00ffcc';
+            particle.style.boxShadow = '0 0 5px #00ffcc';
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particlesContainer.appendChild(particle);
+            setTimeout(() => particle.remove(), 2000);
+        }
+        setInterval(createParticle, 100);
+
+        // Elementos do DOM
+        const ouvidoriaSection = document.getElementById('ouvidoria-section');
+        const adminLogin = document.getElementById('admin-login');
+        const adminSection = document.getElementById('admin-section');
+        const messageList = document.getElementById('message-list');
+
+        // Credenciais de admin (para exemplo, em produção use backend seguro)
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS = 'ubuntu123';
+
+        // Armazenamento local das mensagens
+        let messages = JSON.parse(localStorage.getItem('ouvidoriaMessages')) || [];
+
+        // Enviar mensagem da ouvidoria
+        document.getElementById('ouvidoria-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value || 'Anônimo';
+            const tipo = document.getElementById('tipo').value;
+            const mensagem = document.getElementById('mensagem').value;
+            const timestamp = new Date().toLocaleString();
+
+            const newMessage = { nome, tipo, mensagem, timestamp };
+            messages.push(newMessage);
+            localStorage.setItem('ouvidoriaMessages', JSON.stringify(messages));
+
+            alert('Mensagem enviada com sucesso! Obrigado por contribuir com o Ubuntu.');
+            e.target.reset();
+        });
+
+        // Mostrar login do admin
+        document.getElementById('admin-btn').addEventListener('click', () => {
+            ouvidoriaSection.classList.add('hidden');
+            adminLogin.classList.remove('hidden');
+            adminSection.classList.add('hidden');
+        });
+
+        // Login do admin
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('admin-user').value;
+            const pass = document.getElementById('admin-pass').value;
+
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                adminLogin.classList.add('hidden');
+                adminSection.classList.remove('hidden');
+                displayMessages();
+            } else {
+                alert('Credenciais inválidas!');
+            }
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            adminSection.classList.add('hidden');
+            ouvidoriaSection.classList.remove('hidden');
+        });
+
+        // Exibir mensagens
+        function displayMessages() {
+            messageList.innerHTML = '';
+            messages.forEach((msg, index) => {
+                const messageItem = document.createElement('div');
+                messageItem.classList.add('message-item');
+                messageItem.innerHTML = `
+                    <p><strong>Nome:</strong> ${msg.nome}</p>
+                    <p><strong>Tipo:</strong> ${msg.tipo}</p>
+                    <p><strong>Mensagem:</strong> ${msg.mensagem}</p>
+                    <p><strong>Data:</strong> ${msg.timestamp}</p>
+                `;
+                messageList.appendChild(messageItem);
+            });
+        }
+    </script>
+</body>
+</html>
